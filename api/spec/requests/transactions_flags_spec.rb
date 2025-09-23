@@ -7,11 +7,13 @@ RSpec.describe "Transaction flags", type: :request do
   it "flags and unflags a transaction" do
     t = create(:transaction, user: user, needs_review: false)
     patch "/v1/transactions/#{t.id}/flag"
-    expect(response).to have_http_status(:no_content)
+    expect(response).to have_http_status(:ok)
+    expect(JSON.parse(response.body)).to eq({ "id" => t.id, "needs_review" => true })
     expect(t.reload.needs_review).to be true
 
     patch "/v1/transactions/#{t.id}/unflag"
-    expect(response).to have_http_status(:no_content)
+    expect(response).to have_http_status(:ok)
+    expect(JSON.parse(response.body)).to eq({ "id" => t.id, "needs_review" => false })
     expect(t.reload.needs_review).to be false
   end
 
