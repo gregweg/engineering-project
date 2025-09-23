@@ -274,7 +274,7 @@ class V1::TransactionsController < ApplicationController
 
   def set_user
     # Replace with current_user after auth; using first for scaffold
-    @user = User.first || User.create!(email: "gregwegman@gmail.com")
+    @user = User.first || User.create!(email: "demo@example.com")
   end
 
   def txn_params
