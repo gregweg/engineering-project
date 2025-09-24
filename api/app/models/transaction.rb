@@ -8,9 +8,27 @@ class Transaction < ApplicationRecord
 
   scope :flagged, -> { where(needs_review: true) }
   scope :unflagged, -> { where(needs_review: false) }
+  scope :uncategorized, -> { where(category_id: nil) }
+  scope :recent, -> { order(created_at: :desc) }
+  scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
+  scope :with_amount_range, ->(min, max) { where(amount: min..max) }
 
   def flag_types
-    anomalies.where(resolved: false).pluck(:flag_type).uniq
+    Rails.cache.fetch("transaction_#{id}_flag_types", expires_in: 5.minutes) do
+      anomalies.where(resolved: false).pluck(:flag_type).uniq
+    end
+  end
+
+  def self.user_spending_stats(user_id, days = 30)
+    Rails.cache.fetch("user_#{user_id}_spending_stats_#{days}d", expires_in: 1.hour) do
+      transactions = where(user_id: user_id, date: days.days.ago..Date.current)
+      {
+        total_amount: transactions.sum(:amount),
+        transaction_count: transactions.count,
+        avg_amount: transactions.average(:amount)&.round(2),
+        categories: transactions.joins(:category).group('categories.name').sum(:amount)
+      }
+    end
   end
 
   before_save :assign_fingerprint

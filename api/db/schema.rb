@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_23_040911) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "categories", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -47,6 +48,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_23_040911) do
     t.boolean "enabled", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["user_id", "enabled", "priority"], name: "idx_rules_user_enabled_priority"
     t.index ["user_id"], name: "index_rules_on_user_id"
   end
 
@@ -59,6 +61,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_23_040911) do
     t.datetime "updated_at", null: false
     t.index ["flag_type"], name: "index_transaction_anomalies_on_flag_type"
     t.index ["txn_id", "flag_type", "resolved"], name: "idx_anomalies_txn_flag_resolved"
+    t.index ["txn_id", "flag_type"], name: "idx_anomalies_unresolved", where: "(resolved = false)"
     t.index ["txn_id", "flag_type"], name: "index_transaction_anomalies_on_txn_id_and_flag_type"
     t.index ["txn_id"], name: "index_transaction_anomalies_on_txn_id"
   end
@@ -76,9 +79,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_23_040911) do
     t.datetime "updated_at", null: false
     t.index ["amount"], name: "index_transactions_on_amount"
     t.index ["category_id"], name: "index_transactions_on_category_id"
+    t.index ["description"], name: "idx_transactions_description_search", opclass: :gin_trgm_ops, using: :gin
+    t.index ["description"], name: "idx_txn_desc_gin", opclass: :gin_trgm_ops, using: :gin
+    t.index ["metadata"], name: "idx_transactions_metadata", using: :gin
+    t.index ["user_id", "amount", "date"], name: "idx_txn_user_amount_date"
+    t.index ["user_id", "amount"], name: "idx_transactions_user_amount"
+    t.index ["user_id", "category_id", "date"], name: "idx_transactions_user_category_date"
+    t.index ["user_id", "category_id"], name: "idx_transactions_uncategorized", where: "(category_id IS NULL)"
+    t.index ["user_id", "category_id"], name: "idx_txn_uncategorized", where: "(category_id IS NULL)"
     t.index ["user_id", "category_id"], name: "index_transactions_on_user_id_and_category_id"
+    t.index ["user_id", "date", "id"], name: "idx_transactions_user_date_id"
     t.index ["user_id", "date"], name: "index_transactions_on_user_id_and_date"
+    t.index ["user_id", "fingerprint", "id", "amount", "date"], name: "idx_txn_covering"
     t.index ["user_id", "fingerprint"], name: "index_transactions_on_user_id_and_fingerprint", unique: true
+    t.index ["user_id", "needs_review", "created_at"], name: "idx_txn_user_review_created"
+    t.index ["user_id", "needs_review"], name: "idx_transactions_user_needs_review"
+    t.index ["user_id", "updated_at"], name: "idx_transactions_user_updated"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
 

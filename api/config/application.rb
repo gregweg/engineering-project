@@ -40,5 +40,22 @@ module Api
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Performance optimizations for 1M+ transactions
+    config.cache_store = :redis_cache_store
+    config.active_job.queue_adapter = :sidekiq
+
+    # Enable query caching
+    config.active_record.cache_versioning = true
+    config.active_record.collection_cache_versioning = true
+
+    # Optimize JSON serialization
+    config.active_support.use_standard_json_time_format = true
+
+    # Memory and performance settings
+    config.active_record.automatic_scope_inversing = true
+
+    # Background job settings
+    config.active_job.queue_name_prefix = "bookkeeping_#{Rails.env}"
   end
 end

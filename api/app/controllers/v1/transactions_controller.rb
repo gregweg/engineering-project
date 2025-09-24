@@ -1,13 +1,46 @@
 class V1::TransactionsController < ApplicationController
+  include PerformanceMonitoring
     before_action :set_user
     before_action :find_txn, only: [ :show, :flag, :unflag, :flag_type, :unflag_type, :update_flag, :destroy ]
 
     def index
-      txns = @user.transactions.includes(:category).limit(params[:limit] || 100)
+      limit = [params[:limit].to_i, 1000].min.positive? ? [params[:limit].to_i, 1000].min : 100
+      offset = params[:offset].to_i
+
+      # Use cached recent transactions for first page
+      if offset == 0 && limit <= 50 && params[:search].blank?
+        cached_data = TransactionCacheService.recent_transactions(@user.id, limit)
+        return render json: cached_data
+      end
+
+      query = @user.transactions.includes(:category)
+
+      # Apply search filter
+      if params[:search].present?
+        query = query.where("description ILIKE ?", "%#{params[:search]}%")
+      end
+
+      # Apply date range filter
+      if params[:start_date].present? && params[:end_date].present?
+        query = query.by_date_range(params[:start_date], params[:end_date])
+      end
+
+      # Apply category filter
+      if params[:category_id].present?
+        query = query.where(category_id: params[:category_id])
+      elsif params[:uncategorized] == 'true'
+        query = query.uncategorized
+      end
+
+      # Apply flagged filter
+      if params[:flagged] == 'true'
+        query = query.flagged
+      end
+
+      txns = query.recent.limit(limit).offset(offset)
 
       render json: txns.as_json(
         only: [ :id, :date, :description, :amount, :needs_review ],
-        methods: [],
         include: {
           category: { only: [ :id, :name ] }
         }
