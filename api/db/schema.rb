@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_24_000001) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_30_232952) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -79,13 +79,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_24_000001) do
     t.datetime "updated_at", null: false
     t.index ["amount"], name: "index_transactions_on_amount"
     t.index ["category_id"], name: "index_transactions_on_category_id"
-    t.index ["description"], name: "idx_transactions_description_search", opclass: :gin_trgm_ops, using: :gin
     t.index ["description"], name: "idx_txn_desc_gin", opclass: :gin_trgm_ops, using: :gin
     t.index ["metadata"], name: "idx_transactions_metadata", using: :gin
     t.index ["user_id", "amount", "date"], name: "idx_txn_user_amount_date"
     t.index ["user_id", "amount"], name: "idx_transactions_user_amount"
     t.index ["user_id", "category_id", "date"], name: "idx_transactions_user_category_date"
-    t.index ["user_id", "category_id"], name: "idx_transactions_uncategorized", where: "(category_id IS NULL)"
     t.index ["user_id", "category_id"], name: "idx_txn_uncategorized", where: "(category_id IS NULL)"
     t.index ["user_id", "category_id"], name: "index_transactions_on_user_id_and_category_id"
     t.index ["user_id", "date", "id"], name: "idx_transactions_user_date_id"

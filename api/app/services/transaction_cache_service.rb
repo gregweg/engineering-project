@@ -40,9 +40,16 @@ class TransactionCacheService
   end
 
   def self.clear_user_cache(user_id)
-    pattern = "user_#{user_id}_*"
-    keys = Rails.cache.redis.keys(pattern)
-    Rails.cache.delete_multi(keys) if keys.any?
+    # Clear known cache keys for this user
+    # Note: Using explicit keys instead of pattern matching to avoid blocking Redis
+    Rails.cache.delete("user_#{user_id}_summary")
+    Rails.cache.delete("user_#{user_id}_anomaly_counts")
+    Rails.cache.delete("user_#{user_id}_spending_stats_30d")
+
+    # Clear recent transaction caches (common limits)
+    [50, 100, 200].each do |limit|
+      Rails.cache.delete("user_#{user_id}_recent_#{limit}")
+    end
   end
 
   def self.clear_transaction_cache(transaction_id)

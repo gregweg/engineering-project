@@ -29,13 +29,12 @@ class CsvTransactionImporter
   end
 
   def compute_fingerprint(user_id:, date:, amount:, description:)
-    norm_desc = description.to_s.downcase.strip.gsub(/\s+/, " ")
-    Digest::MD5.hexdigest([
-      user_id.to_s,
-      date&.iso8601.to_s,
-      amount.present? ? amount.to_s : "",
-      norm_desc
-    ].join("|"))
+    TxnUtils.fingerprint(
+      user_id: user_id,
+      date: date,
+      amount: amount,
+      description: description
+    )
   end
 
   private
