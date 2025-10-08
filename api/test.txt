@@ -1,0 +1,2 @@
+curl -s -X POST :3000/v1/transactions -H 'Content-Type: application/json' \
+  -d '{"transaction":{"date":"2025-09-01","description":"Big TV","amount":"$1,299.95"}}'

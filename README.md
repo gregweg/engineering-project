@@ -1,3 +1,5 @@
+[![Watch the video](https://cdn.loom.com/sessions/thumbnails/35ac9dd1415d4e269d060ac9d904024d-with-play.gif)](https://www.loom.com/share/35ac9dd1415d4e269d060ac9d904024d)
+
 # Soraban Engineering Project
 The following is a take-home project for Soraban engineering candidates.
 
